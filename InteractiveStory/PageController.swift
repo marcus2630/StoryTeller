@@ -6,7 +6,36 @@
 //  Copyright © 2017 Treehouse Island. All rights reserved.
 //
 
-import UIKit 
+import UIKit
+
+extension NSAttributedString {
+    var stringRange: NSRange {
+        return NSMakeRange(0, self.length)
+    }
+}
+
+extension Story {
+    var attributedText: NSAttributedString {
+        let attributedString = NSMutableAttributedString(string: text)
+        
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.lineSpacing = 10
+        
+        attributedString.addAttribute(NSParagraphStyleAttributeName, value: paragraphStyle, range: attributedString.stringRange)
+        
+        return attributedString
+    }
+}
+
+extension Page {
+    func story(attributed: Bool) -> NSAttributedString {
+        if attributed {
+            return story.attributedText
+        } else {
+            return NSAttributedString(string: story.text)
+        }
+    }
+}
 
 class PageController: UIViewController {
     
@@ -14,10 +43,33 @@ class PageController: UIViewController {
     
     // MARK: - User Interface Properties
     
-    let artworkView = UIImageView()
-    let storyLabel = UILabel()
-    let firstChoiceButton = UIButton(type: .system)
-    let secondChoiceButton = UIButton(type: .system)
+    let artworkView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
+    
+    let storyLabel: UILabel = {
+       let label = UILabel()
+        
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.numberOfLines = 0
+        return label
+    }()
+    
+    let firstChoiceButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+        
+    }()
+    
+    let secondChoiceButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+        
+    }()
     
     required init?(coder aDecoder: NSCoder) {
        super.init(coder: aDecoder)
@@ -30,19 +82,12 @@ class PageController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         view.backgroundColor = .white
+        
         if let page = page {
             artworkView.image = page.story.artwork
             
-            let attributedString = NSMutableAttributedString(string: page.story.text)
-            
-            let paragraphStyle = NSMutableParagraphStyle()
-            paragraphStyle.lineSpacing = 10
-            
-            attributedString.addAttribute(NSParagraphStyleAttributeName, value: paragraphStyle, range: NSMakeRange(0, attributedString.length))
-            
-            storyLabel.attributedText  = attributedString
+            storyLabel.attributedText  = page.story(attributed: true)
             
             if let firstChoice = page.firstChoice {
                 firstChoiceButton.setTitle(firstChoice.title, for: .normal)
@@ -69,7 +114,6 @@ class PageController: UIViewController {
         super.viewWillLayoutSubviews()
         
         view.addSubview(artworkView)
-        artworkView.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
             artworkView.topAnchor.constraint(equalTo: view.topAnchor),
@@ -79,8 +123,6 @@ class PageController: UIViewController {
         ])
         
         view.addSubview(storyLabel)
-        storyLabel.numberOfLines = 0
-        storyLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             storyLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16.0),
             storyLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16.0),
@@ -97,7 +139,6 @@ class PageController: UIViewController {
             ])
         
         view.addSubview(secondChoiceButton)
-        secondChoiceButton.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
             secondChoiceButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
